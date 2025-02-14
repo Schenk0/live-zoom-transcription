@@ -29,11 +29,11 @@ Click view push commands and run the commands. (This may take a while to push)
 
 ### Setting up fargate task definition
 
-Launch type: `Fargate`
+Launch type: `Fargate`  
 Operating system/Architecture: `Linux/X86_64`
 
-**Container - 1**:
-Name: `zoom-bot`
+**Container - 1**:  
+Name: `zoom-bot`  
 Image: `YOUR_IMAGE_URI`
 
 Add Environment variables:
@@ -45,7 +45,7 @@ ZOOM_CLIENT_SECRET=YOUR_ZOOM_CLIENT_SECRET
 
 ### Setting up ECS cluster
 
-Name: `zoom-bot`
+Name: `zoom-bot`  
 Infrastructure: `Fargate`
 
 ### Run the task
@@ -81,7 +81,7 @@ run_response = ecs_client.run_task(
     overrides={
         "containerOverrides": [
             {
-                "name": "adora-image",
+                "name": "zoom-bot",
                 "environment": [
                     {"name": "JOIN_URL", "value": join_url},
                 ]
