@@ -2,6 +2,9 @@ import os
 import wave
 import io
 from openai import OpenAI  # type: ignore
+import logging
+
+logger = logging.getLogger(__name__)
 
 def handle_audio_transcription(audio_data: bytes, channels: int, sample_width: int, framerate: int) -> str | None:
     """
@@ -31,7 +34,7 @@ def handle_audio_transcription(audio_data: bytes, channels: int, sample_width: i
         
         api_key = os.environ.get('OPENAI_API_KEY')
         if not api_key:
-            print("No OPENAI_API_KEY found in environment")
+            logger.error("No OPENAI_API_KEY found in environment")
             return None
 
         client = OpenAI(api_key=api_key)
@@ -43,5 +46,5 @@ def handle_audio_transcription(audio_data: bytes, channels: int, sample_width: i
         return transcription.text
 
     except Exception as e:
-        print(f"Error transcribing audio: {e}")
+        logger.exception("Error transcribing audio")
         return None

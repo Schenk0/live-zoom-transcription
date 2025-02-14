@@ -1,3 +1,4 @@
+import logging 
 import zoom_meeting_sdk as zoom # type: ignore
 import os
 import gi # type: ignore
@@ -6,6 +7,8 @@ import utils as utils
 
 gi.require_version('GLib', '2.0')
 from gi.repository import GLib # type: ignore
+
+logger = logging.getLogger(__name__)
 
 class MeetingBot:
 	def __init__(self):
@@ -75,7 +78,7 @@ class MeetingBot:
 		self.recording_ctrl = self.meeting_service.GetMeetingRecordingController()
 
 		def on_recording_privilege_changed(can_rec):
-			print(f"Recording privilege changed. Can record: {can_rec}")
+			logger.info(f"Recording privilege changed. Can record: {can_rec}")
 			if can_rec:
 				GLib.timeout_add_seconds(1, self.__start_raw_recording)
 			else:
@@ -114,15 +117,15 @@ class MeetingBot:
 
 			join_result = self.meeting_service.Join(join_param)
 			if join_result == zoom.SDKERR_SUCCESS:
-				print("Successfully joined meeting")
+				logger.info("Successfully joined meeting")
 			else:
-				print(f"Failed to join meeting. Error: {join_result}")
+				logger.error(f"Failed to join meeting. Error: {join_result}")
 				return
 
 			self.audio_settings = self.setting_service.GetAudioSettings()
 			self.audio_settings.EnableAutoJoinAudio(True)
 		except Exception as e:
-			print(f"Error joining meeting: {e}")
+			logger.exception("Error joining meeting")
 			raise
 
 	def __on_reminder_notify(self, content, handler):
@@ -130,11 +133,11 @@ class MeetingBot:
 			if handler:
 				handler.Accept()
 		except Exception as e:
-			print(f"Error on_reminder_notify: {e}")
+			logger.exception("Error in on_reminder_notify")
 
 	def __auth_return(self, result):
 		if result == zoom.AUTHRET_SUCCESS:
-			print("Auth completed successfully, joining meeting...")
+			logger.info("Auth completed successfully, joining meeting...")
 			return self.__join_meeting()
 
 		raise Exception(f"Failed to authorize. result = {result}")
@@ -143,7 +146,7 @@ class MeetingBot:
 		if status == zoom.MEETING_STATUS_INMEETING:
 			self.__on_join()
 
-		print(f"New meeting status: {status}")
+		logger.info(f"New meeting status: {status}")
 
 	def __create_services(self):
 		self.meeting_service = zoom.CreateMeetingService()
@@ -162,7 +165,7 @@ class MeetingBot:
 
 		set_event_result = self.auth_service.SetEvent(self.auth_event)
 		if set_event_result != zoom.SDKERR_SUCCESS:
-			print(f"Failed to set event. Error: {set_event_result}")
+			logger.error(f"Failed to set event. Error: {set_event_result}")
 
 		# Use the auth service
 		auth_context = zoom.AuthContext()
@@ -171,9 +174,9 @@ class MeetingBot:
 		result = self.auth_service.SDKAuth(auth_context)
 
 		if result == zoom.SDKError.SDKERR_SUCCESS:
-			print("Authentication successful")
+			logger.info("Authentication successful")
 		else:
-			print("Authentication failed with error:", result)
+			logger.error(f"Authentication failed with error: {result}")
 
 	def cleanup(self):
 		if self.meeting_service:
@@ -190,25 +193,25 @@ class MeetingBot:
 			return
 		
 		try:
+			logger.info("Leaving meeting...")
 			status = self.meeting_service.GetMeetingStatus()
 			if status == zoom.MEETING_STATUS_IDLE:
 				return
 
-			print("Leaving meeting...")
 			self.meeting_service.Leave(zoom.LEAVE_MEETING)
 		except Exception as e:
-			print(f"Error leaving meeting: {e}")
+			logger.exception("Error leaving meeting")
 
 	def get_meeting_status(self):
 		try:
 			return self.meeting_service.GetMeetingStatus()
 		except Exception as e:
-			print(f"Error getting meeting status: {e}")
+			logger.exception("Error getting meeting status")
 			return None
 
 	def send_audio_buffer_to_whisper(self):
 		if not self.audio_buffer:
-			print("Audio buffer is empty, skipping transcription.")
+			logger.info("Audio buffer is empty, skipping transcription.")
 			return True
 
 		if self.on_audio_transcription_needed_callback:
@@ -225,10 +228,10 @@ class MeetingBot:
 			)
 
 			if transcription_text:
-				print(f"Transcription text: {transcription_text}")
+				logger.info(f"Transcription text: {transcription_text}")
 				# This is where we would send the transcription text
 		else:
-			print("No transcription callback set, clearing audio buffer")
+			logger.info("No transcription callback set, clearing audio buffer")
 			self.audio_buffer = bytearray()
 
 		return True  # Keep the timer running
@@ -240,17 +243,17 @@ class MeetingBot:
 			can_start_recording_result = self.recording_ctrl.CanStartRawRecording()
 			if can_start_recording_result != zoom.SDKERR_SUCCESS:
 				self.recording_ctrl.RequestLocalRecordingPrivilege()
-				print("Requesting recording privilege.")
+				logger.info("Requesting recording privilege.")
 				return
 
 			start_raw_recording_result = self.recording_ctrl.StartRawRecording()
 			if start_raw_recording_result != zoom.SDKERR_SUCCESS:
-				print("Start raw recording failed.")
+				logger.error("Start raw recording failed.")
 				return
 
 			self.audio_helper = zoom.GetAudioRawdataHelper()
 			if self.audio_helper is None:
-				print("audio_helper is None")
+				logger.error("audio_helper is None")
 				return
 			
 			if self.audio_source is None:
@@ -260,7 +263,7 @@ class MeetingBot:
 				)
 
 			audio_helper_subscribe_result = self.audio_helper.subscribe(self.audio_source, False)
-			print(f"Audio helper subscribe result: {audio_helper_subscribe_result}")
+			logger.info(f"Audio helper subscribe result: {audio_helper_subscribe_result}")
 
 			# transcribe every 5 seconds
 			GLib.timeout_add_seconds(5, self.send_audio_buffer_to_whisper)
@@ -268,7 +271,7 @@ class MeetingBot:
 			return True
 
 		except Exception as e:
-			print(f"Error starting raw recording: {e}")
+			logger.exception("Error starting raw recording")
 			return False
 
 	def __stop_raw_recording(self):
@@ -276,9 +279,9 @@ class MeetingBot:
 			if self.recording_ctrl:
 				result = self.recording_ctrl.StopRawRecording()
 				if result != zoom.SDKERR_SUCCESS:
-					print("Error stopping raw recording")
+					logger.error("Error stopping raw recording")
 		except Exception as e:
-			print(f"Error stopping raw recording: {e}")
+			logger.exception("Error stopping raw recording")
 
 	def __on_one_way_audio_raw_data_received_callback(self, data, node_id):
 		try:
@@ -289,4 +292,4 @@ class MeetingBot:
 				self.audio_buffer = bytearray(bytes(self.audio_buffer) + bytes(temp_buffer))
 
 		except Exception as e:
-			print(f"Error in audio data callback: {e}")
+			logger.exception("Error in audio data callback")

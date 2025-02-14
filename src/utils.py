@@ -1,6 +1,9 @@
 from urllib.parse import urlencode, urlparse, parse_qs
 import jwt # type: ignore
 from datetime import datetime, timedelta, timezone
+import logging
+
+logger = logging.getLogger(__name__)
 
 def generate_jwt(client_id, client_secret):
     iat = datetime.now(timezone.utc)
@@ -20,7 +23,7 @@ def generate_jwt(client_id, client_secret):
 def extract_meeting_details(join_url):
     url = urlparse(join_url)
     if not url:
-        print("Unable to parse join URL")
+        logger.error("Unable to parse join URL")
         return None, None
     
     # Extract path and split into parts
