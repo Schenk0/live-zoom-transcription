@@ -1,9 +1,10 @@
 # Live Zoom Transcription Bot
 
+This is a Zoom bot based on the [Python Zoom SDK bindings](https://github.com/noah-duncan/py-zoom-meeting-sdk) by Noah Duncan. It transcribes audio from Zoom meetings and sends the transcription to OpenAI for processing.
+
 ## Deployment
 
 Deploy to AWS ESC with fargate task.
-
 
 ### Build and test run docker image
 
@@ -22,4 +23,3 @@ docker push 533267296380.dkr.ecr.us-west-1.amazonaws.com/zoom-bot:latest
 ## Running the development program
 
 - Run `docker compose run --rm develop`
-- Run `python src/main.py`
