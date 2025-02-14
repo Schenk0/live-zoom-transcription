@@ -1,6 +1,6 @@
 # Live Zoom Transcription Bot
 
-This is a Zoom bot based on the [Python Zoom SDK bindings](https://github.com/noah-duncan/py-zoom-meeting-sdk) by Noah Duncan. It transcribes audio from Zoom meetings and sends the transcription to OpenAI for processing.
+This is a Zoom bot based on the [Python Zoom SDK bindings](https://github.com/noah-duncan/py-zoom-meeting-sdk) by Noah Duncan. It takes the audio from Zoom meetings and sends it to OpenAI for transcription.
 
 ## Deployment
 
