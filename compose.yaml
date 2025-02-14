@@ -1,0 +1,9 @@
+services:
+  develop: &develop
+    build: ./
+    volumes:
+     - .:/tmp/zoom-bot
+    environment:
+      - ZOOM_CLIENT_ID
+      - ZOOM_CLIENT_SECRET
+      - JOIN_URL

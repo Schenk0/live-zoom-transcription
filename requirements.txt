@@ -1,0 +1,4 @@
+zoom-meeting-sdk
+python-dotenv
+openai
+pyjwt
