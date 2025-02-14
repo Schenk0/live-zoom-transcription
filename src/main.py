@@ -1,3 +1,6 @@
+import logging
+logging.basicConfig(level=logging.INFO)
+
 from meeting_bot import MeetingBot
 import zoom_meeting_sdk as zoom # type: ignore
 
@@ -5,7 +8,6 @@ from dotenv import load_dotenv # type: ignore
 import signal
 import os
 import gi # type: ignore
-import logging
 
 gi.require_version('GLib', '2.0')
 from gi.repository import GLib # type: ignore
