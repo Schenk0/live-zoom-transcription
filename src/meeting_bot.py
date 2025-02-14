@@ -262,8 +262,8 @@ class MeetingBot:
 			audio_helper_subscribe_result = self.audio_helper.subscribe(self.audio_source, False)
 			print(f"Audio helper subscribe result: {audio_helper_subscribe_result}")
 
-			# transcribe every 30 seconds
-			GLib.timeout_add_seconds(30, self.send_audio_buffer_to_whisper)
+			# transcribe every 5 seconds
+			GLib.timeout_add_seconds(5, self.send_audio_buffer_to_whisper)
 
 			return True
 
